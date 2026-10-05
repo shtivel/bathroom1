@@ -1,6 +1,8 @@
 from datetime import UTC, datetime
 from enum import StrEnum
 
+from sqlalchemy import Column
+from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -34,7 +36,14 @@ class Review(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     station_id: int = Field(foreign_key="gasstation.id")
 
-    bathroom_type: BathroomType
+    # Store the enum's string value ("women") rather than its default member name
+    # ("WOMEN"), so the DB column matches what the API actually sends/receives.
+    bathroom_type: BathroomType = Field(
+        sa_column=Column(
+            SAEnum(BathroomType, values_callable=lambda cls: [e.value for e in cls]),
+            nullable=False,
+        )
+    )
 
     cleanliness: int = Field(ge=1, le=5)
     has_soap: bool

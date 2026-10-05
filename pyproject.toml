@@ -24,6 +24,8 @@ testpaths = ["tests"]
 line-length = 100
 target-version = "py311"
 src = ["src"]
+# Auto-generated migration snapshots - not hand-written, so not held to our style rules.
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]  # pycodestyle, pyflakes, isort, pyupgrade, bugbear

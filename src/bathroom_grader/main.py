@@ -1,17 +1,18 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from sqlmodel import SQLModel
 
-from bathroom_grader.database import engine
+from bathroom_grader.migrations import upgrade_to_head
 from bathroom_grader.routers import reviews, stations
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Dev-only convenience: create tables directly from the models.
-    # Once the schema stabilizes, switch to Alembic migrations instead.
-    SQLModel.metadata.create_all(engine)
+    # Runs `alembic upgrade head` against whatever DB `config.settings.database_url`
+    # points to. Fine for a single-instance local/dev setup; if this app ever runs as
+    # multiple concurrent instances, move this to a separate deploy step instead, so
+    # instances don't race to apply the same migration.
+    upgrade_to_head()
     yield
 
 
