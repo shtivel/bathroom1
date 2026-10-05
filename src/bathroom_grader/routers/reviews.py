@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
@@ -5,12 +7,14 @@ from bathroom_grader.database import get_session
 from bathroom_grader.models import BathroomType, GasStation, Review
 from bathroom_grader.schemas import ReviewCreate, ReviewRead
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/stations/{station_id}/reviews", tags=["reviews"])
 
 
 def _get_station_or_404(station_id: int, session: Session) -> GasStation:
     station = session.get(GasStation, station_id)
     if not station:
+        logger.warning("Station %d not found", station_id)
         raise HTTPException(status_code=404, detail="Station not found")
     return station
 
@@ -35,4 +39,11 @@ def create_review(station_id: int, review: ReviewCreate, session: Session = Depe
     session.add(db_review)
     session.commit()
     session.refresh(db_review)
+    logger.info(
+        "Created review %d for station %d (bathroom_type=%s, cleanliness=%d)",
+        db_review.id,
+        station_id,
+        db_review.bathroom_type,
+        db_review.cleanliness,
+    )
     return db_review

@@ -19,6 +19,10 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Stream app log records live to the terminal while tests run (in addition to the
+# per-run file in logs/, set up in conftest.py).
+log_cli = true
+log_cli_level = "INFO"
 
 [tool.ruff]
 line-length = 100

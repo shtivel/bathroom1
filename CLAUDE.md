@@ -33,6 +33,7 @@ alembic upgrade head
 # Run the API locally (reloads on code changes)
 uvicorn bathroom_grader.main:app --reload
 # -> API at http://localhost:8000, interactive docs at http://localhost:8000/docs
+# -> logs to the console and to logs/app.log (set LOG_LEVEL=DEBUG for more detail)
 
 # After changing a model in models.py, generate a migration for it, review the
 # generated file (autogenerate isn't perfect), then apply it
@@ -69,8 +70,13 @@ New code should also come with tests in `tests/` — run `pytest` before conside
 
 - `src/starter.py` — leftover scaffold entry point, not part of the real app.
 - `src/bathroom_grader/` — the FastAPI backend.
-  - `main.py` — FastAPI app, route registration, `/health` endpoint.
-  - `config.py` — settings (e.g. `DATABASE_URL`), loaded via `pydantic-settings`.
+  - `main.py` — FastAPI app, route registration, `/health` endpoint, request-logging middleware.
+  - `config.py` — settings (e.g. `DATABASE_URL`, `LOG_LEVEL`, `LOG_FILE`), loaded via `pydantic-settings`.
+  - `logging_config.py` — `configure_logging()`: plain-text logs to console + rotating file
+    (`logs/app.log`, gitignored). Modules just do `logging.getLogger(__name__)` and log normally.
+    Gotcha: Alembic's `env.py` calls `fileConfig(alembic.ini)`, which replaces the root logger's
+    handlers - `main.py`'s lifespan re-calls `configure_logging()` right after migrations run,
+    to put our handlers back.
   - `database.py` — SQLAlchemy/SQLModel engine + `get_session` dependency.
   - `models.py` — SQLModel table models: `GasStation`, `Review`, and the `BathroomType` enum
     (women/men/unisex_or_family/accessible/other — reviews are tagged by which bathroom they're

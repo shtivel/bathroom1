@@ -14,8 +14,11 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
+# disable_existing_loggers=False matters here: since this now runs on every app startup
+# (main.py's lifespan calls `alembic upgrade head`), our app's own loggers already exist
+# by this point - fileConfig()'s default would silently disable all of them.
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Read the DB URL from our app's own settings (config.py) instead of duplicating it
 # in alembic.ini, so there's a single source of truth.

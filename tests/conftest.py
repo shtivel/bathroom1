@@ -1,3 +1,4 @@
+import time
 from collections.abc import Generator
 
 import pytest
@@ -5,8 +6,16 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
+from bathroom_grader.config import settings
 from bathroom_grader.database import get_session
-from bathroom_grader.main import app
+
+# Must happen before `bathroom_grader.main` is imported below: that import triggers
+# configure_logging(), which reads settings.log_file. Redirect it to a per-run file
+# (not the real dev server's logs/app.log, and not a single shared test log that
+# different runs would just keep appending to and blending together).
+settings.log_file = f"logs/test-{time.strftime('%Y%m%d-%H%M%S')}.log"
+
+from bathroom_grader.main import app  # noqa: E402
 
 
 @pytest.fixture(name="session")

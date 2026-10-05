@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
@@ -5,6 +7,7 @@ from bathroom_grader.database import get_session
 from bathroom_grader.models import BathroomType, GasStation
 from bathroom_grader.schemas import GasStationCreate, GasStationRead, GasStationWithStats
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/stations", tags=["stations"])
 
 
@@ -47,6 +50,7 @@ def create_station(station: GasStationCreate, session: Session = Depends(get_ses
     session.add(db_station)
     session.commit()
     session.refresh(db_station)
+    logger.info("Created station %d: %s (%s)", db_station.id, db_station.name, db_station.city)
     return db_station
 
 
@@ -58,5 +62,6 @@ def get_station(
 ):
     station = session.get(GasStation, station_id)
     if not station:
+        logger.warning("Station %d not found", station_id)
         raise HTTPException(status_code=404, detail="Station not found")
     return _with_stats(station, bathroom_type)
